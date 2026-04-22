@@ -6,8 +6,9 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name     = trim($_POST['name']);
-    $email    = trim($_POST['email']);
+    $name       = trim($_POST['name']);
+    $university = trim($_POST['university']);
+    $email      = trim($_POST['email']);
     $password = trim($_POST['password']);
     $confirm  = trim($_POST['confirm']);
 
@@ -35,8 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Hash password and insert user
             $hashed = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $conn->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
-            $stmt->bind_param("sss", $name, $email, $hashed);
+            $stmt = $conn->prepare("INSERT INTO users (name, university, email, password) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("ssss", $name, $university, $email, $hashed);
 
             if ($stmt->execute()) {
                 $success = 'Account created! You can now log in.';
@@ -77,6 +78,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    value="<?php echo isset($_POST['name']) ? htmlspecialchars($_POST['name']) : ''; ?>"
                    placeholder="Ife Osinuga"
                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2d6a4f] transition">
+        </div>
+
+        <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1">University</label>
+            <input type="text" name="university"
+                value="<?php echo isset($_POST['university']) ? htmlspecialchars($_POST['university']) : ''; ?>"
+                placeholder="e.g. University of Lagos"
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2d6a4f] transition">
         </div>
 
         <div>
