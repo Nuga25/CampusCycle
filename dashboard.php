@@ -38,6 +38,32 @@ $stmt->execute();
 $my_claims = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
+// Fetch primary image for each claimed item
+foreach ($my_claims as &$claim) {
+    $img_stmt = $conn->prepare(
+        "SELECT filename FROM item_images WHERE item_id = ? AND is_primary = 1 LIMIT 1"
+    );
+    $img_stmt->bind_param("i", $claim['id']);
+    $img_stmt->execute();
+    $result = $img_stmt->get_result()->fetch_assoc();
+    $claim['primary_image'] = $result['filename'] ?? null;
+    $img_stmt->close();
+}
+unset($claim);
+
+// Fetch primary image for each item
+foreach ($my_items as &$item) {
+    $img_stmt = $conn->prepare(
+        "SELECT filename FROM item_images WHERE item_id = ? AND is_primary = 1 LIMIT 1"
+    );
+    $img_stmt->bind_param("i", $item['id']);
+    $img_stmt->execute();
+    $result = $img_stmt->get_result()->fetch_assoc();
+    $item['primary_image'] = $result['filename'] ?? null;
+    $img_stmt->close();
+}
+unset($item);
+
 $total_given     = count($my_items);
 $total_claimed   = count($my_claims);
 $still_available = count(array_filter($my_items, fn($i) => $i['status'] === 'available'));
@@ -91,10 +117,10 @@ $still_available = count(array_filter($my_items, fn($i) => $i['status'] === 'ava
                 <?php foreach ($my_items as $item): ?>
                     <div class="bg-white border border-gray-200 rounded-2xl p-4 flex gap-4 items-center">
 
-                        <?php if ($item['image']): ?>
-                            <img src="/CampusCycle/uploads/<?php echo htmlspecialchars($item['image']); ?>"
-                                 class="w-14 h-14 rounded-xl object-cover shrink-0">
-                        <?php else: ?>
+                        <?php if ($item['primary_image']): ?>
+                            <img src="/CampusCycle/uploads/<?php echo htmlspecialchars($item['primary_image']); ?>"
+                                class="w-14 h-14 rounded-xl object-cover shrink-0">
+                        <?php else: ?>  
                             <div class="w-14 h-14 rounded-xl bg-[#d8f3dc] flex items-center justify-center text-2xl shrink-0">
                                 🌿
                             </div>
@@ -149,9 +175,9 @@ $still_available = count(array_filter($my_items, fn($i) => $i['status'] === 'ava
                 <?php foreach ($my_claims as $claim): ?>
                     <div class="bg-white border border-gray-200 rounded-2xl p-4 flex gap-4 items-center">
 
-                        <?php if ($claim['image']): ?>
-                            <img src="/CampusCycle/uploads/<?php echo htmlspecialchars($claim['image']); ?>"
-                                 class="w-14 h-14 rounded-xl object-cover shrink-0">
+                        <?php if ($item['primary_image']): ?>
+                            <img src="/CampusCycle/uploads/<?php echo htmlspecialchars($item['primary_image']); ?>"
+                                class="w-14 h-14 rounded-xl object-cover shrink-0">
                         <?php else: ?>
                             <div class="w-14 h-14 rounded-xl bg-[#d8f3dc] flex items-center justify-center text-2xl shrink-0">
                                 🌿
