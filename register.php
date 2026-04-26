@@ -1,6 +1,7 @@
 <?php
 require_once 'includes/header.php';
 require_once 'config/db.php';
+require_once 'config/universities.php';
 
 $error = '';
 $success = '';
@@ -50,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
+
 <div class="max-w-md mx-auto">
 
     <div class="mb-6">
@@ -82,10 +84,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div>
             <label class="text-sm font-medium text-gray-700 block mb-1">University</label>
-            <input type="text" name="university"
-                value="<?php echo isset($_POST['university']) ? htmlspecialchars($_POST['university']) : ''; ?>"
-                placeholder="e.g. University of Lagos"
-                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2d6a4f] transition">
+            <select name="university"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2d6a4f] transition bg-white">
+                <option value="">Select your university</option>
+                <?php foreach ($nigerian_universities as $uni): ?>
+                    <option value="<?php echo htmlspecialchars($uni); ?>"
+                        <?php echo (isset($_POST['university']) && $_POST['university'] === $uni) ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($uni); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <p class="text-xs text-gray-400 mt-1">Used to show you items from your campus first.</p>
         </div>
 
         <div>

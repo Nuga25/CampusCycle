@@ -45,10 +45,6 @@ if (session_status() === PHP_SESSION_NONE) {
     </a>
     <div class="flex items-center gap-4">
         <?php if (isset($_SESSION['user_id'])): ?>
-            <a href="/CampusCycle/post-item.php"
-            class="text-white text-sm opacity-85 hover:opacity-100 transition">
-                + Post Item
-            </a>
             <a href="/CampusCycle/dashboard.php"
             class="text-white text-sm opacity-85 hover:opacity-100 transition">
                 Dashboard

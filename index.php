@@ -190,8 +190,11 @@ $categories = $conn->query("SELECT * FROM categories")->fetch_all(MYSQLI_ASSOC);
                         <p class="text-xs text-gray-400">
                             <?php echo htmlspecialchars($item['university'] ?? 'Campus'); ?> ·
                             <?php
-                                $diff = time() - strtotime($item['created_at']);
-                                if ($diff < 3600) echo floor($diff/60) . 'm ago';
+                                $now  = new DateTime('now', new DateTimeZone('Africa/Lagos'));
+                                $posted = new DateTime($item['created_at'], new DateTimeZone('Africa/Lagos'));
+                                $diff = $now->getTimestamp() - $posted->getTimestamp();
+                                if ($diff < 60) echo 'just now';
+                                elseif ($diff < 3600) echo floor($diff/60) . 'm ago';
                                 elseif ($diff < 86400) echo floor($diff/3600) . 'h ago';
                                 else echo floor($diff/86400) . 'd ago';
                             ?>
