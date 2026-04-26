@@ -24,6 +24,15 @@ $stmt->execute();
 $item = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
+// Fetch images for this item
+$img_stmt = $conn->prepare(
+    "SELECT filename FROM item_images WHERE item_id = ? ORDER BY is_primary DESC"
+);
+$img_stmt->bind_param("i", $id);
+$img_stmt->execute();
+$item['images'] = $img_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$img_stmt->close();
+
 if (!$item) {
     header("Location: /CampusCycle/index.php");
     exit();
@@ -101,15 +110,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['claim'])) {
 
     <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
 
-        <?php if ($item['image']): ?>
-            <img src="/CampusCycle/uploads/<?php echo htmlspecialchars($item['image']); ?>"
-                 alt="<?php echo htmlspecialchars($item['title']); ?>"
-                 class="w-full h-64 object-cover">
-        <?php else: ?>
-            <div class="w-full h-48 bg-[#d8f3dc] flex items-center justify-content-center justify-center text-6xl">
-                🌿
+        <?php if (!empty($item['images'])): ?>
+    <div class="relative overflow-hidden" style="height: 480px;">
+        <div class="flex h-full transition-transform duration-300"
+             id="slider-main">
+            <?php foreach ($item['images'] as $img): ?>
+                <img src="/CampusCycle/uploads/<?php echo htmlspecialchars($img['filename']); ?>"
+                     class="w-full h-full object-cover shrink-0"
+                     style="min-width: 100%">
+            <?php endforeach; ?>
+        </div>
+        <?php if (count($item['images']) > 1): ?>
+            <button onclick="slide(-1)"
+                    class="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-8 h-8 rounded-full text-sm transition">
+                ‹
+            </button>
+            <button onclick="slide(1)"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-8 h-8 rounded-full text-sm transition">
+                ›
+            </button>
+            <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                <?php for ($i = 0; $i < count($item['images']); $i++): ?>
+                    <div class="w-1.5 h-1.5 rounded-full bg-white/50" id="dot-<?php echo $i; ?>"></div>
+                <?php endfor; ?>
             </div>
         <?php endif; ?>
+    </div>
+<?php else: ?>
+    <div class="w-full bg-[#d8f3dc] flex items-center justify-center text-6xl" style="height: 240px;">
+        🌿
+    </div>
+<?php endif; ?>
 
         <div class="p-6">
 
@@ -210,9 +241,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['claim'])) {
                         Log in to claim this item
                     </a>
 
-                <?php elseif ($_SESSION['user_id'] == $item['user_id']): ?>
-                    <div class="bg-gray-50 rounded-2xl p-4 text-center">
-                        <p class="text-gray-400 text-sm">This is your listing.</p>
+                <?php elseif (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $item['user_id']): ?>
+                    <div class="bg-gray-50 rounded-2xl p-4">
+                        <p class="text-gray-500 text-sm font-medium mb-3">This is your listing</p>
+                        <div class="flex gap-2">
+                            <a href="/CampusCycle/edit-item.php?id=<?php echo $item['id']; ?>"
+                            class="flex-1 text-center text-sm border border-[#2d6a4f] text-[#2d6a4f] hover:bg-[#d8f3dc] py-2.5 rounded-full transition">
+                                Edit listing
+                            </a>
+                            <form method="POST" action="/CampusCycle/delete-item.php"
+                                onsubmit="return confirm('Are you sure you want to delete this listing?')">
+                                <input type="hidden" name="item_id" value="<?php echo $item['id']; ?>">
+                                <button type="submit"
+                                        class="text-sm border border-red-200 text-red-400 hover:bg-red-50 px-5 py-2.5 rounded-full transition">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 <?php endif; ?>
 
@@ -220,5 +265,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['claim'])) {
         </div>
     </div>
 </div>
+
+<script>
+let current = 0;
+const slider = document.getElementById('slider-main');
+const dots   = document.querySelectorAll('[id^="dot-"]');
+
+function slide(dir) {
+    if (!slider) return;
+    const total = slider.children.length;
+    current = (current + dir + total) % total;
+    slider.style.transform = `translateX(-${current * 100}%)`;
+    dots.forEach((d, i) => {
+        d.style.background = i === current ? 'white' : 'rgba(255,255,255,0.5)';
+    });
+}
+</script>
 
 <?php require_once 'includes/footer.php'; ?>

@@ -160,7 +160,7 @@ $categories = $conn->query("SELECT * FROM categories")->fetch_all(MYSQLI_ASSOC);
                 </div>
 
                 <?php if (!empty($item['images'])): ?>
-                    <div class="relative overflow-hidden" style="height: 280px;">
+                    <div class="relative overflow-hidden" style="height: 420px;">
                         <div class="feed-slider flex h-full transition-transform duration-300"
                              id="slider-<?php echo $item['id']; ?>">
                             <?php foreach ($item['images'] as $img): ?>
