@@ -8,9 +8,21 @@ $category_id = intval($_GET['category'] ?? 0);
 $condition   = $_GET['condition'] ?? '';
 
 // Build query dynamically
-$where    = ["1=1"];
-$params   = [];
-$types    = "";
+$search      = trim($_GET['search'] ?? '');
+$category_id = intval($_GET['category'] ?? 0);
+$condition   = $_GET['condition'] ?? '';
+$show_all    = isset($_GET['all_unis']);
+
+$where   = ["1=1"];
+$params  = [];
+$types   = "";
+
+// University filter — default to user's uni if logged in
+if (isset($_SESSION['user_id']) && !empty($_SESSION['university']) && !$show_all) {
+    $where[]  = "users.university = ?";
+    $params[] = $_SESSION['university'];
+    $types   .= "s";
+}
 
 if ($search) {
     $where[]  = "(items.title LIKE ? OR items.description LIKE ?)";
@@ -83,7 +95,42 @@ $categories = $conn->query("SELECT * FROM categories")->fetch_all(MYSQLI_ASSOC);
             Get started
         </a>
     <?php endif; ?>
-</div>
+</div> 
+<?php if (isset($_SESSION['user_id']) && empty($_SESSION['university'])): ?>
+    <div class="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3 mb-5 flex justify-between items-center">
+        <div>
+            <p class="text-amber-700 text-sm font-medium">Set your university 🏫</p>
+            <p class="text-amber-600 text-xs mt-0.5">
+                See items from your campus first.
+            </p>
+        </div>
+        <a href="/CampusCycle/profile.php"
+           class="text-xs bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 rounded-full transition shrink-0 ml-4">
+            Update profile
+        </a>
+    </div>
+<?php elseif (isset($_SESSION['user_id']) && !empty($_SESSION['university'])): ?>
+    <div class="flex items-center justify-between mb-2">
+        <p class="text-sm text-gray-500">
+            <?php if ($show_all): ?>
+                Showing items from <span class="font-medium text-gray-700">all universities</span>
+            <?php else: ?>
+                Showing items from <span class="font-medium text-gray-700"><?php echo htmlspecialchars($_SESSION['university']); ?></span>
+            <?php endif; ?>
+        </p>
+        <?php if ($show_all): ?>
+            <a href="/CampusCycle/index.php"
+               class="text-xs text-[#2d6a4f] hover:underline font-medium">
+                My university only →
+            </a>
+        <?php else: ?>
+            <a href="/CampusCycle/index.php?all_unis=1"
+               class="text-xs text-[#2d6a4f] hover:underline font-medium">
+                Browse all universities →
+            </a>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
 
 <form method="GET" class="mb-5 flex flex-col gap-3">
     <div class="relative">

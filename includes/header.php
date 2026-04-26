@@ -1,6 +1,17 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
+    // Keep university in session
+    if (isset($_SESSION['user_id']) && !isset($_SESSION['university'])) {
+        require_once __DIR__ . '/../config/db.php';
+        $sid = $_SESSION['user_id'];
+        $s   = $conn->prepare("SELECT university FROM users WHERE id = ?");
+        $s->bind_param("i", $sid);
+        $s->execute();
+        $r = $s->get_result()->fetch_assoc();
+        $_SESSION['university'] = $r['university'] ?? '';
+        $s->close();
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -35,12 +46,16 @@ if (session_status() === PHP_SESSION_NONE) {
     <div class="flex items-center gap-4">
         <?php if (isset($_SESSION['user_id'])): ?>
             <a href="/CampusCycle/post-item.php"
-               class="text-white text-sm opacity-85 hover:opacity-100 transition">
+            class="text-white text-sm opacity-85 hover:opacity-100 transition">
                 + Post Item
             </a>
             <a href="/CampusCycle/dashboard.php"
-               class="text-white text-sm opacity-85 hover:opacity-100 transition">
+            class="text-white text-sm opacity-85 hover:opacity-100 transition">
                 Dashboard
+            </a>
+            <a href="/CampusCycle/profile.php"
+            class="text-white text-sm opacity-85 hover:opacity-100 transition">
+                Profile
             </a>
             <a href="/CampusCycle/logout.php"
                class="text-sm bg-white/20 hover:bg-white/30 text-white px-4 py-1.5 rounded-full transition">
